@@ -22,7 +22,6 @@ namespace M.OBD2
 
         // Non DB Values
         public byte[] CmdBytes { get; set; }
-        //public ProcessValue oProcessValue;
 
         public BluetoothCmd()
         { 
@@ -55,31 +54,9 @@ namespace M.OBD2
 
         public void CreateTestCommands()
         {
-            //Add(new BluetoothCmd()
-            //{
-            //    Id = 0,
-            //    Name = "RPM",
-            //    Units = "",
-            //    isImperial = true,
-            //    Cmd = "",
-            //    Rate =  200,
-            //    Decimals = 0,
-            //    Expression = "a*1",
-            //    Command_Types = new[] { COMMAND_TYPE.DEFAULT }
-            //});
-
-            //Add(new BluetoothCmd()
-            //{
-            //    Id = 1,
-            //    Name = "VOLTS",
-            //    Units = "VDC",
-            //    isImperial = true,
-            //    Cmd = "ATRV",
-            //    Rate = 1000,
-            //    Decimals = 2,
-            //    Expression = "",
-            //    Command_Types = new[] { COMMAND_TYPE.DEFAULT }
-            //});
+            // Format 01##01
+            // 01 = Service
+            // https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_05
 
             Add(new BluetoothCmd()
             {
@@ -105,22 +82,10 @@ namespace M.OBD2
                 Rate = 2000,
                 Decimals = 0,
                 isRxBytes = true,
+                Bytes =1,
                 Expression = "(a * 100 / 255)",
                 Command_Types = new[] { COMMAND_TYPE.DEFAULT }
             });
-
-            //Add(new BluetoothCmd()
-            //    {
-            //        Id = 2,
-            //        Name = "AFR",
-            //        Units = "",
-            //        isImperial = true,
-            //        Cmd = "",
-            //        Rate = 1000,
-            //        Decimals = 2,
-            //        Expression = "a*1",
-            //        Command_Types = new[] { COMMAND_TYPE.AFR }
-            //});
 
             Add(new BluetoothCmd()
             {
@@ -130,8 +95,9 @@ namespace M.OBD2
                 isImperial = true,
                 Cmd = "010D1",
                 Rate = 1000,
-                Decimals = 2,
+                Decimals = 1,
                 isRxBytes = true,
+                Bytes = 1,
                 Expression = "a*1",
                 Command_Types = new[] { COMMAND_TYPE.VSS }
             });
@@ -173,19 +139,6 @@ namespace M.OBD2
             //    Decimals = 0,
             //    Expression = "(a * 100 / 255)",
             //    Command_Types = new[] { COMMAND_TYPE.TPS}
-            //});
-
-            //Add(new BluetoothCmd()
-            //{
-            //    Id = 7,
-            //    Name = "Keep alive",
-            //    Units = "",
-            //    isImperial = true,
-            //    Cmd = "0100",
-            //    Rate = 25,
-            //    Decimals = 0,
-            //    Expression = null,
-            //    Command_Types = new[] { COMMAND_TYPE.DEFAULT }
             //});
 
             InitCommandBytes();

@@ -3,6 +3,7 @@ using Android.Bluetooth;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -253,11 +254,8 @@ namespace M.OBD2
             if (bcmd.sbResponse.Length == 0 || bcmd.sbResponse.Length <= bcmd.Cmd.Length) // If response is empty or length is invalid 
                 return false;
 
-            // Debug testing:
-            //response = "0105141053F";
-
             string msg = bcmd.sbResponse.ToString().Substring(0, bcmd.Cmd.Length); // Isolate the expected echoed value
-            return msg.Equals(bcmd.Cmd, StringComparison.OrdinalIgnoreCase) && ProcessResponse(bcmd); // Return if echoed portion found and processing result
+            return msg.Equals(bcmd.Cmd, StringComparison.OrdinalIgnoreCase) && ProcessResponse(bcmd); // Return if echoed portion found and the processing result
         }
 
         private static bool ProcessResponse(BluetoothCmd bcmd)
@@ -274,20 +272,18 @@ namespace M.OBD2
                 }
 
                 // ToDo: Debug testing - remember to remove!
-                bcmd.Response = "41053F";
+               //bcmd.Response = "41053F";
 
-                if (!bcmd.Response.StartsWith(RX_MESSAGE, StringComparison.OrdinalIgnoreCase)) // If we are expecting bytes returned and response is valid
+                if (bcmd.Bytes != 0 && !bcmd.Response.StartsWith(RX_MESSAGE, StringComparison.OrdinalIgnoreCase)) // If we are expecting bytes returned and response is valid
                 {
-                    // Convert hex string to byte array
-                    //byte[] bytes = Convert.FromBase64String(bcmd.Response);
-
-                    byte[] bytes = Encoding.UTF8.GetBytes(bcmd.Response);
-
-                    if (bytes.Length > 0) // If valid
+                    // Attempt to parse the hex value
+                    if (int.TryParse(bcmd.Response.Substring(bcmd.Response.Length - (bcmd.Bytes * 2)), NumberStyles.HexNumber,null, out int result ))
                     {
-
-
+                        bcmd.rxvalue = result;
                         bcmd.rx_good++;
+
+                        // ToDo: call math parser here
+
                         return true;
                     }
                 }

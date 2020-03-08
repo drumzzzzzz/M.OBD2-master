@@ -69,10 +69,10 @@ namespace M.OBD2
                         {
                             bool result = await oBluetooth.SendCommandAsync(bcmd);
 
-                            if (!result)
-                            {
+                            if (result)
+                                Debug.WriteLine("Process: {0} Rx: {1} Value: {2}", bcmd.Name,  bcmd.Response,  (bcmd.isRxBytes) ? bcmd.rxvalue : -1);
+                            else
                                 Debug.WriteLine("Process: {0} {1}", bcmd.Name, Bluetooth.GetStatusMessage());
-                            }
                         }
                         
                         bcmd.dtNext = dtCurrent.AddMilliseconds(bcmd.Rate);

@@ -14,7 +14,7 @@ namespace M.OBD2
         public ulong rx_fail { get; set; }
         public ulong rx_good { get; set; }
         
-        public double rx_value { get; set; }  // Received raw value
+        public int rxvalue { get; set; }  // Received raw value
         public double value { get; set; }       // Processed value
         public bool isValid { get; set; }
 
