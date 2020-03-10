@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace M.OBD2
@@ -9,7 +7,7 @@ namespace M.OBD2
     public class Process
     {
         private readonly BlueToothCmds oBlueToothCmds;
-        private Bluetooth oBluetooth;
+        private readonly Bluetooth oBluetooth;
 
         public Process(Bluetooth oBluetooth, BlueToothCmds oBlueToothCmds)
         {
@@ -20,32 +18,6 @@ namespace M.OBD2
         public async Task RunProcesses()
         {
             await RunProcess();
-            //await Task.Run(() =>
-            //{
-            //    while (true)
-            //    {
-            //        foreach (BluetoothCmd bcmd in oBlueToothCmds)
-            //        {
-            //            dtCurrent = DateTime.UtcNow;
-
-            //            if (dtCurrent >= bcmd.dtNext)
-            //            {
-            //                if (bcmd.CmdBytes != null && bcmd.CmdBytes.Length != 0)
-            //                {
-            //                    bool result = oBluetooth.SendCommandSync(bcmd.CmdBytes);
-
-            //                    if (!result)
-            //                    {
-            //                        Debug.WriteLine("Process: {0} {1}", bcmd.Name, Bluetooth.GetStatusMessage());
-            //                    }
-            //                }
-
-            //                bcmd.dtNext = dtCurrent.AddMilliseconds(bcmd.Rate);
-            //                Debug.WriteLine("Process:" + bcmd.Name);
-            //            }
-            //        }
-            //    }
-            //}).ConfigureAwait(false);
         }
 
         public async Task RunProcess()
@@ -57,7 +29,8 @@ namespace M.OBD2
                 bcmd.dtNext = dtCurrent.AddMilliseconds(bcmd.Rate);
             }
 
-            while (true)
+            // ToDo: implement UI start/stop control 
+            while (true) 
             {
                 foreach (BluetoothCmd bcmd in oBlueToothCmds)
                 {
@@ -67,10 +40,8 @@ namespace M.OBD2
                     {
                         if (bcmd.CmdBytes != null && bcmd.CmdBytes.Length != 0)
                         {
-                            bool result = await oBluetooth.SendCommandAsync(bcmd);
-
-                            if (result)
-                                Debug.WriteLine("Process: {0} Rx: {1} Value: {2}", bcmd.Name,  bcmd.Response,  (bcmd.isRxBytes) ? bcmd.rxvalue : -1);
+                            if (await oBluetooth.SendCommandAsync(bcmd))
+                                Debug.WriteLine("Process: {0} Rx: {1} RxValue: {2} Value: {3}", bcmd.Name,  bcmd.Response,  (bcmd.isRxBytes) ? bcmd.rxvalue : -1, bcmd.value);
                             else
                                 Debug.WriteLine("Process: {0} {1}", bcmd.Name, Bluetooth.GetStatusMessage());
                         }

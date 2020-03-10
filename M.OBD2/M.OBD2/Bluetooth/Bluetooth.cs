@@ -47,13 +47,13 @@ namespace M.OBD2
                 //"ATAT0\r", // Disable adaptive timing
                 //"ATST0F", // Set 'nodata' timeout
                 "ATSP0", // Search for protocol
-                "ATDP", // Display protocol
+                //"ATDP", // Display protocol
                 "ATS0", // Remove spaces from ecu responses
                 //"ATH1", // Display header info
                 //"ATMA", // Display all info
                 //"AT@1\r", 
                 //"AT@2\r",
-                "0100\r"
+                "0100\r" // Keep alive
             };
 
             DTC_CLEAR = Encoding.ASCII.GetBytes("04" + "\r");
@@ -242,55 +242,12 @@ namespace M.OBD2
             catch (Exception e)
             {
                 status_message = string.Format("{0}: {1}", "Read Error", e.Message);
+                bcmd.tx_fail++;
 
                 if (isDebug)
                     Debug.WriteLine(status_message);
                 return false;
             }
-        }
-
-        private static bool ValidateResponse(BluetoothCmd bcmd)
-        {
-            if (bcmd.sbResponse.Length == 0 || bcmd.sbResponse.Length <= bcmd.Cmd.Length) // If response is empty or length is invalid 
-                return false;
-
-            string msg = bcmd.sbResponse.ToString().Substring(0, bcmd.Cmd.Length); // Isolate the expected echoed value
-            return msg.Equals(bcmd.Cmd, StringComparison.OrdinalIgnoreCase) && ProcessResponse(bcmd); // Return if echoed portion found and the processing result
-        }
-
-        private static bool ProcessResponse(BluetoothCmd bcmd)
-        {
-            // Trim the returned value portion
-            bcmd.Response = bcmd.sbResponse.ToString().Substring(bcmd.Cmd.Length).Trim();
-
-            if (!string.IsNullOrEmpty(bcmd.Response)) // Check if valid
-            {
-                if (!bcmd.isRxBytes) // If a string message: update counter, return as success
-                { 
-                    bcmd.rx_good++;
-                    return true;
-                }
-
-                // ToDo: Debug testing - remember to remove!
-               //bcmd.Response = "41053F";
-
-                if (bcmd.Bytes != 0 && !bcmd.Response.StartsWith(RX_MESSAGE, StringComparison.OrdinalIgnoreCase)) // If we are expecting bytes returned and response is valid
-                {
-                    // Attempt to parse the hex value
-                    if (int.TryParse(bcmd.Response.Substring(bcmd.Response.Length - (bcmd.Bytes * 2)), NumberStyles.HexNumber,null, out int result ))
-                    {
-                        bcmd.rxvalue = result;
-                        bcmd.rx_good++;
-
-                        // ToDo: call math parser here
-
-                        return true;
-                    }
-                }
-            }
-            // Response was invalid: update counter and return as failed
-            bcmd.rx_fail++;
-            return false;
         }
 
         public static async Task<bool> SendCommandAsync(BluetoothConnection bc, string command)
@@ -352,6 +309,55 @@ namespace M.OBD2
             }
 
             return sb.ToString();
+        }
+
+        #endregion
+
+        #region Response Processing
+
+        private static bool ValidateResponse(BluetoothCmd bcmd)
+        {
+            if (bcmd.sbResponse.Length == 0 || bcmd.sbResponse.Length <= bcmd.Cmd.Length) // If response is empty or length is invalid 
+                return false;
+
+            string msg = bcmd.sbResponse.ToString().Substring(0, bcmd.Cmd.Length); // Isolate the expected echoed value
+            return msg.Equals(bcmd.Cmd, StringComparison.OrdinalIgnoreCase) && ProcessResponse(bcmd); // Return if echoed portion found and the processing result
+        }
+
+        private static bool ProcessResponse(BluetoothCmd bcmd)
+        {
+            // Trim the returned value portion
+            bcmd.Response = bcmd.sbResponse.ToString().Substring(bcmd.Cmd.Length).Trim();
+
+            if (!string.IsNullOrEmpty(bcmd.Response)) // Check if valid
+            {
+                if (!bcmd.isRxBytes) // If a string message: update counter, return as success
+                {
+                    bcmd.rx_good++;
+                    return true;
+                }
+
+                // ToDo: Debug test value
+                // bcmd.Response = "41053F";
+
+                if (bcmd.Bytes != 0 && !bcmd.Response.StartsWith(RX_MESSAGE, StringComparison.OrdinalIgnoreCase)) // If we are expecting bytes returned and response is valid
+                {
+                    // Attempt to parse the hex value
+                    if (int.TryParse(bcmd.Response.Substring(bcmd.Response.Length - (bcmd.Bytes * 2)), NumberStyles.HexNumber, null, out int result))
+                    {
+                        // Store result and call math expression parser
+                        bcmd.rxvalue = result;
+                        if (bcmd.Calculate()) // On success: update counter and return result
+                        {
+                            bcmd.rx_good++;
+                            return true;
+                        }
+                    }
+                }
+            }
+            // Response was invalid: update counter and return as failed
+            bcmd.rx_fail++;
+            return false;
         }
 
         #endregion

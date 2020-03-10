@@ -24,7 +24,7 @@ namespace M.OBD2
         public byte[] CmdBytes { get; set; }
 
         public BluetoothCmd()
-        { 
+        {
         }
     }
 
@@ -104,19 +104,6 @@ namespace M.OBD2
 
             //Add(new BluetoothCmd()
             //{
-            //    Id = 4,
-            //    Name = "MAF",
-            //    Units = "g/s",
-            //    isImperial = true,
-            //    Cmd = "",
-            //    Rate = 500,
-            //    Decimals = 2,
-            //    Expression = "a*1",
-            //    Command_Types = new[] { COMMAND_TYPE.MAF }
-            //});
-
-            //Add(new BluetoothCmd()
-            //{
             //    Id = 5,
             //    Name = "MPG",
             //    Units = "",
@@ -128,20 +115,12 @@ namespace M.OBD2
             //    Command_Types = new[] { COMMAND_TYPE.MPG, COMMAND_TYPE.AFR, COMMAND_TYPE.VSS, COMMAND_TYPE.MAF }
             //});
 
-            //Add(new BluetoothCmd()
-            //{
-            //    Id = 6,
-            //    Name = "TPS",
-            //    Units = "%",
-            //    isImperial = true,
-            //    Cmd = "",
-            //    Rate = 1000,
-            //    Decimals = 0,
-            //    Expression = "(a * 100 / 255)",
-            //    Command_Types = new[] { COMMAND_TYPE.TPS}
-            //});
-
             InitCommandBytes();
+
+            foreach (BluetoothCmd b in this)
+            {
+                b.InitExpression(b.Expression, b.Command_Types);
+            }
         }
     }
 }
